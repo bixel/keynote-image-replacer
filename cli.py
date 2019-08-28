@@ -11,6 +11,7 @@ def parse_args():
     parser.add_argument('path', nargs='+', type=str)
     parser.add_argument('--slides', nargs='+', type=str)
     parser.add_argument('--images', nargs='+', type=str)
+    parser.add_argument('--mode', type=str, default='template')
     return parser.parse_args()
 
 
@@ -24,7 +25,7 @@ if __name__ == '__main__':
         variable_end_string=']]',
     )
 
-    with open('template.applescript') as f:
+    with open(f'{args.mode}.applescript') as f:
         template = jenv.from_string(f.read())
 
     files = []
