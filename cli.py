@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 from jinja2 import Environment
 import argparse
 import os
@@ -6,13 +8,27 @@ import fnmatch
 import pprint
 
 
+DEBUG = False
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('path', nargs='+', type=str)
     parser.add_argument('--slides', nargs='+', type=str)
     parser.add_argument('--images', nargs='+', type=str)
     parser.add_argument('--mode', type=str, default='template')
-    return parser.parse_args()
+    parser.add_argument('--debug', action='store_true', default=False)
+    args = parser.parse_args()
+    if args.debug:
+        global DEBUG
+        DEBUG = True
+    return args
+
+
+def debug(obj):
+    global DEBUG
+    if DEBUG:
+        pprint.pprint(obj)
 
 
 if __name__ == '__main__':
@@ -31,11 +47,12 @@ if __name__ == '__main__':
     files = []
     for path in args.path:
         files += glob.glob(os.path.expanduser(path))
-    filenames = [os.path.split(f)[1] for f in files]
+    debug(files)
 
     slides = []
     for slideexp in args.slides:
-        slide_candidates = fnmatch.filter(filenames, slideexp)
+        slide_candidates = fnmatch.filter(files, slideexp)
+        debug(slide_candidates)
         images = []
         for imageexp in args.images:
             image_candidates = fnmatch.filter(slide_candidates, imageexp)
@@ -47,7 +64,7 @@ if __name__ == '__main__':
                     errormsg = (f'Expression {imageexp} did match more than one'
                         f' file for slide expression {slideexp}:\n{image_candidates}')
                 raise ValueError(errormsg)
-            images.append(files[filenames.index(image_candidates[0])])
+            images.append(image_candidates[0])
         slides.append(images)
 
     rendered = template.render(slides=slides)
